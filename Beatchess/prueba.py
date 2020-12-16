@@ -46,9 +46,9 @@ class Chess():
                 print("negris")
                 #self.stockfish.set_position(["e2e4", "e7e6"])
                 self.stockfish.set_fen_position(juego.fen())
-                print(self.stockfish.get_best_move())
-                self.casilla_origen = input('Origen: ')
-                self.casilla_destino = input('Destino: ')
+                move=self.stockfish.get_best_move()
+                self.casilla_origen = move[0]+move[1]
+                self.casilla_destino = move[2]+move[3]
             movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
             if movimiento:
                 promocion = movimiento['promotion']
