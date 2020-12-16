@@ -31,6 +31,7 @@ class CalviChess():
     verificar_draw = False
     AI = ABPruningAI()
     stockfish = Stockfish("stockfish_20090216_x64.exe")
+    contador = 0
     
     
     def __init__(self, raiz, posicion):
@@ -125,22 +126,19 @@ class CalviChess():
                 x0 = (y * self.dim_casilla) + int(self.dim_casilla/2)
                 y0 = ((7-x) * self.dim_casilla) + int(self.dim_casilla/2)
                 self.canvas.coords(nom_pieza, x0, y0)
-                #self.canvas.tag_bind(self.obj_imagen, "<Enter>", self.entra_mouse_over)
+                self.canvas.tag_bind(self.obj_imagen, "<Enter>", self.entra_mouse_over)
                 #self.canvas.tag_bind(self.obj_imagen, "<Leave>", self.sale_mouse_over)
                 #empezamos ahora el drag & drop
                 #añadimos la ligazon del clic, arrastrar y soltar sobre
                 #las imagenes con el tag "ocupada"
-                #self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
-                #self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
-                #self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
-        #time.sleep(5)
-        #self.empezar()
-
-    def empezar(self):
+                self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
+                self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
+                self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
         if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
         if juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_2()
+
 
     def on_pieza_soltada_2(self):
         self.stockfish.set_fen_position(juego.fen())
@@ -148,6 +146,7 @@ class CalviChess():
         self.casilla_origen = temp2[0] + temp2[1]
         self.casilla_destino = temp2[2]+temp2[3]
         movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
+
 
 
 
