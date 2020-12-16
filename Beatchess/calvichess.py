@@ -6,6 +6,7 @@ import tablero
 import ajedrez_parser
 from tkinter import messagebox as MessageBox
 from AlphaBetaPruning import ABPruningAI
+import Stockfish
 
 class CalviChess():
     cont = 0
@@ -128,9 +129,8 @@ class CalviChess():
                 self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
                 self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
                 self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
-        if juego.turno()=='b':
+        if juego.turno()=='b' and self.verificar_checkMate!=True and self.verificar_draw!=True:
             self.on_pieza_soltada_1()
-
 
 
 
