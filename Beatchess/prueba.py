@@ -1,5 +1,7 @@
 import tablero
 import ajedrez_parser
+from stockfish import Stockfish
+stockfish = Stockfish("stockfish_20090216_x64.exe")
 
 
 class Chess():
@@ -19,6 +21,8 @@ class Chess():
     # para ejecutar los movimientos
     casilla_origen = None
     casilla_destino = None
+    stockfish = Stockfish("stockfish_20090216_x64.exe")
+    #stockfish = Stockfish(parameters={"Threads": 2, "Minimum Thinking Time": 30})
 
     def __init__(self,posicion):
         self.tablero = posicion
@@ -30,8 +34,21 @@ class Chess():
             print(juego.turno())
             print(juego.fen())
             self.imprimir()
-            self.casilla_origen = input('Origen: ')
-            self.casilla_destino = input('Destino: ')
+
+            #Negras
+
+
+            #Blancas
+            if juego.turno() == 'w':
+                self.casilla_origen = input('Origen: ')
+                self.casilla_destino = input('Destino: ')
+            else:
+                print("negris")
+                #self.stockfish.set_position(["e2e4", "e7e6"])
+                self.stockfish.set_fen_position(juego.fen())
+                print(self.stockfish.get_best_move())
+                self.casilla_origen = input('Origen: ')
+                self.casilla_destino = input('Destino: ')
             movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
             if movimiento:
                 promocion = movimiento['promotion']
