@@ -6,9 +6,14 @@ import tablero
 import ajedrez_parser
 from tkinter import messagebox as MessageBox
 from AlphaBetaPruning import ABPruningAI
+from stockfish import Stockfish
+import random
+
 
 class CalviChess():
+    listfens=[]
     cont = 0
+    flag=0
     filas = 8
     columnas = 8
     #color1 = "#DDB88C"    #es la casilla blanca
@@ -28,7 +33,9 @@ class CalviChess():
     verificar_check = False
     verificar_draw = False
     AI = ABPruningAI()
-    
+    stockfish = Stockfish("stockfish_20090216_x64.exe")
+
+    stockfish.set_depth(15)
     
     def __init__(self, raiz, posicion):
         self.raiz = raiz
@@ -42,7 +49,6 @@ class CalviChess():
 
         self.canvas = Canvas(panes, width=canvas_width, height=canvas_height)
         self.canvas.pack(padx=8, pady=8)
-        self.dibuja_tablero()
 
         self.ventana_derecha = Canvas(panes, width=canvas_width, height=canvas_height)
         self.ventana_derecha.pack(padx=12, pady=12)
@@ -54,6 +60,9 @@ class CalviChess():
         # cuando se arrastre (drag)
         #self.canvas.config(scrollregion=self.canvas(ALL))
         self._drag_data = {"x": 0, "y": 0, "item": None}
+
+
+
         #print(21, juego.moves({ 'verbose': True }))  # nos muestra todas las jugadas posibles
 
     """
@@ -95,12 +104,12 @@ class CalviChess():
                 self.color_casillas_tablero[letra_casilla + num_casilla] = estruct_casilla
                 self.cont = self.cont +1
 
+
                 
     # dibujamos las piezas en la posicion FEN de chessboard          
     def dibuja_piezas(self): # new method defined here
         #if juego.turno()=='b':
          #   self.on_pieza_soltada_1()
-
 
 
         self.canvas.delete("ocupada")
@@ -120,28 +129,122 @@ class CalviChess():
                 x0 = (y * self.dim_casilla) + int(self.dim_casilla/2)
                 y0 = ((7-x) * self.dim_casilla) + int(self.dim_casilla/2)
                 self.canvas.coords(nom_pieza, x0, y0)
-                self.canvas.tag_bind(self.obj_imagen, "<Enter>", self.entra_mouse_over)
+                #self.canvas.tag_bind(self.obj_imagen, "<Enter>", self.entra_mouse_over)
                 #self.canvas.tag_bind(self.obj_imagen, "<Leave>", self.sale_mouse_over)
                 #empezamos ahora el drag & drop
                 #añadimos la ligazon del clic, arrastrar y soltar sobre
                 #las imagenes con el tag "ocupada"
-                self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
-                self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
-                self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
-        if juego.turno()=='b':
+                #self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
+                #self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
+                #self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
+        #time.sleep(5)
+        self.empezar()
+
+    def empezar(self):
+        self.listfens.append(juego.fen())
+        if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
+        elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
+            self.on_pieza_soltada_2()
+
+    def on_pieza_soltada_2(self):
+        self.stockfish.set_fen_position(juego.fen())
+
+        temp2 = str(self.stockfish.get_best_move())
+        self.casilla_origen = temp2[0] + temp2[1]
+        self.casilla_destino = temp2[2]+temp2[3]
+        movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
 
 
+
+        if movimiento:
+            promocion = movimiento['promotion']
+            pieza = movimiento['piece']
+            san = movimiento['san']
+            color = movimiento['color']
+            flags = movimiento['flags']
+            """
+            El campo flags puede contener uno o mas de los valores siguientes:
+            - 'n' - a non-capture
+            - 'b' - a pawn push of two squares
+            - 'e' - an en passant capture
+            - 'c' - a standard capture
+            - 'p' - a promotion
+            - 'k' - kingside castling
+            - 'q' - queenside castling
+            """
+            # O-O
+            if '#' in movimiento['san']:
+                self.verificar_checkMate = True
+            elif '+' in movimiento['san']:
+                self.verificar_check = True
+            elif '~' in movimiento['san']:
+                self.verificar_draw = True
+            else:
+                self.verificar_check = False
+
+            # ahora vamos a arreglar el tablero interno
+            # este primer del es para borrar la pieza de la casilla origen. Ocurre siempre
+            del self.tablero[self.casilla_origen]  # borramos la pieza en el tablero interno
+            # ahora vamos con los enroques
+            if 'k' in movimiento['flags']:
+                if movimiento['color'] == 'w':
+                    del self.tablero['h1']
+                elif movimiento['color'] == 'b':
+                    del self.tablero['h8']
+            if 'q' in movimiento['flags']:
+                if movimiento['color'] == 'w':
+                    del self.tablero['a1']
+                elif movimiento['color'] == 'b':
+                    del self.tablero['a8']
+            # ahora vamos con la captura al paso
+            if 'e' in flags:
+                if movimiento['color'] == 'w':
+                    numero = int(movimiento['to'][1]) - 1
+                    numstr = str(numero)
+                    casilla_a_borrar = movimiento['to'][0] + numstr
+                    del self.tablero[casilla_a_borrar]
+                elif movimiento['color'] == 'b':
+                    numero = int(movimiento['to'][1]) + 1
+                    numstr = str(numero)
+                    casilla_a_borrar = movimiento['to'][0] + numstr
+                    del self.tablero[casilla_a_borrar]
+            self.tablero.procesa_notacion(juego.fen())
+            self.dibuja_tablero()
+            self.dibuja_piezas()
+
+            # pyglet.font.add_file('./fuentes/ChessSansUscf.ttf') --> se tiene que poner en directorio de SO
+            # fuente_ajedrez = pyglet.font.load('ChessSansUscf')
+            depositLabel = Message(self.ventana_derecha, text=juego.pgn(), width=300, padx=2,
+                                   justify=LEFT)  # , font_name='ChessSansUscf')
+            depositLabel.grid(column=0, row=0)
+
+        else:
+            self.dibuja_tablero()
+            self.dibuja_piezas()
 
 
     def on_pieza_soltada_1(self):
+
         ai_move = self.AI.BestMove(chess.Board(juego.fen()))
-        temp = str(ai_move)
-        self.casilla_origen = temp[0] + temp[1]
-        self.casilla_destino = temp[2] + temp[3]
+        if self.flag ==0:
+            listentrance=['e7e5','d7d5','b7b6','c7c5','f7f5','g7g6','a7a6','a7a5','c7c6','d7d6','e7e6','f7f6','g7g5','h7h6','h7h5']
+            pos = random.randint(0,len(listentrance)-1)
+            print(listentrance[pos])
+            temp=listentrance[pos]
+            self.casilla_origen = temp[0] + temp[1]
+            self.casilla_destino = temp[2] + temp[3]
+        else:
+            temp = str(ai_move)
+            self.casilla_origen = temp[0] + temp[1]
+            self.casilla_destino = temp[2] + temp[3]
+
         movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
         print(movimiento)
         print(movimiento, 'NEGROOOOOOOOOOOOOOOOOOOOO')
+
+        self.flag = 1
+
         if movimiento:
             promocion = movimiento['promotion']
             pieza = movimiento['piece']
@@ -416,6 +519,7 @@ def inicia_programa(posic_tablero):
     gui.dibuja_piezas()
 
     root.mainloop()
+    print(gui.listfens)
 
 
 if __name__ == "__main__":

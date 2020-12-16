@@ -2,7 +2,11 @@
 /shelf/
 /workspace.xml
 # Datasource local storage ignored files
+<<<<<<< HEAD
 /../../../../../../:\Archivos\Documentos\PyCharm\Beatchess-Proyecto\.idea/dataSources/
+=======
+/../../../../../../:\Users\Samuel\Desktop\Beatchess-Proyecto\.idea/dataSources/
+>>>>>>> 9ab46b60143cff7ed559f3af5f158005a80f10c4
 /dataSources.local.xml
 # Editor-based HTTP Client requests
 /httpRequests/
