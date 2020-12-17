@@ -35,7 +35,7 @@ class CalviChess():
     verificar_draw = False
     AI = ABPruningAI(3)
     stockfish = Stockfish("stockfish_20090216_x64.exe")
-    stockfish.set_depth(15)
+    stockfish.set_depth(4)
     contador = 0
     
 
@@ -147,12 +147,12 @@ class CalviChess():
         self.listfens.append(juego.fen())
         print(chess.Board(juego.fen()))
         print(juego.fen())
-        if juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
+        if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
-        """
+
         elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_3()
-        """
+
     #Stockfish
     def on_pieza_soltada_2(self):
         self.stockfish.set_fen_position(juego.fen())
