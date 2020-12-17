@@ -35,7 +35,8 @@ class CalviChess():
     verificar_draw = False
     AI = ABPruningAI(3)
     stockfish = Stockfish("stockfish_20090216_x64.exe")
-    stockfish.set_depth(4)
+    stockfish.set_skill_level(1)
+    stockfish.set_depth(1)
     contador = 0
     
 
@@ -147,12 +148,13 @@ class CalviChess():
         self.listfens.append(juego.fen())
         print(chess.Board(juego.fen()))
         print(juego.fen())
+        print(juego.pgn())
         if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
-
+        """
         elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
-            self.on_pieza_soltada_3()
-
+            self.on_pieza_soltada_2()
+        """
     #Stockfish
     def on_pieza_soltada_2(self):
         self.stockfish.set_fen_position(juego.fen())
@@ -614,4 +616,5 @@ if __name__ == "__main__":
         fen = 'rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1'
     # inicio el tablero interno grafico. El real se controla con ajedrez_parser
     partida = tablero.TableroAjedrez(fen, juego)
+
     inicia_programa(partida)

@@ -32,8 +32,8 @@ class ABPruningAI:
                 if max_value == value:
                     max_move = move
                 current_state.pop()  # Undo previous move to return to the previous state
-                if beta <= alpha:
-                    break
+                #if beta <= alpha:
+                 #   break
             if depth == 0:
                 print(self.explorados)
                 print(max_value)
@@ -51,8 +51,8 @@ class ABPruningAI:
                 min_value = min(min_value, value)
                 beta = min(beta, min_value)
                 current_state.pop()  # Undo previous move to return to the previous state
-                if beta <= alpha:
-                    break
+                #if beta <= alpha:
+                 #   break
             return min_value
 
     def leafStateValue(self, current_state):
