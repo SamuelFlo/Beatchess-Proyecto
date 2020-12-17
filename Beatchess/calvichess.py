@@ -137,20 +137,22 @@ class CalviChess():
                 #empezamos ahora el drag & drop
                 #añadimos la ligazon del clic, arrastrar y soltar sobre
                 #las imagenes con el tag "ocupada"
-                #self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
-                #self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
-                #self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
+                self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
+                self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
+                self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
         #time.sleep(5)
         self.empezar()
 
     def empezar(self):
         self.listfens.append(juego.fen())
         print(chess.Board(juego.fen()))
+        print(juego.fen())
         if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
+        """
         elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_3()
-
+        """
     #Stockfish
     def on_pieza_soltada_2(self):
         self.stockfish.set_fen_position(juego.fen())
