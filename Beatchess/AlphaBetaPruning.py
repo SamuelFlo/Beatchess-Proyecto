@@ -4,7 +4,7 @@ import random
 
 class ABPruningAI:
 
-    def __init__(self, depth_limit=2):
+    def __init__(self, depth_limit=5):
         self.depth_limit = depth_limit
         self.pieceValues = {}
         self.initPieceValues()
@@ -15,6 +15,8 @@ class ABPruningAI:
 
     def AlphaBetaPruning(self, current_state, depth=0, maximizingTurn=True, alpha=-inf, beta=inf):
         if depth == self.depth_limit or self.GameOver(current_state):
+            if self.GameOver(current_state):
+                return self.resultBlackPerspective(current_state.result()) * 1000
             return self.leafStateValue(current_state)
         elif maximizingTurn:
             max_value = -inf
@@ -68,7 +70,14 @@ class ABPruningAI:
         return value
 
     def GameOver(self, current_state):
-        return False
+        return current_state.is_game_over()
+
+    def resultBlackPerspective(self, result):
+        if result == "1-0":
+            return -1
+        elif result == "0-1":
+            return 1
+        return 0
 
     def initPieceValues(self):
         # Initialize pawn values
