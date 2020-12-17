@@ -158,9 +158,6 @@ class CalviChess():
         self.casilla_destino = temp2[2]+temp2[3]
         movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
 
-
-
-
         if movimiento:
             promocion = movimiento['promotion']
             pieza = movimiento['piece']
@@ -314,6 +311,13 @@ class CalviChess():
         else:
             self.dibuja_tablero()
             self.dibuja_piezas()
+
+
+    def on_pieza_soltada_3(self):
+        #MCT = MCTS.MCTSRoot(board)
+        pass
+
+
 
     # empezamos el drag &drop de las piezas
     def on_pieza_presionada(self, event):
