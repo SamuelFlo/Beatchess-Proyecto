@@ -23,7 +23,7 @@ class ABPruningAI:
                 current_state.push(move)  # Move piece to explore new state
                 value = self.AlphaBetaPruning(current_state, depth + 1, not maximizingTurn, alpha, beta)
                 max_value = max(max_value, value)
-                alpha = max(alpha, value)
+                alpha = max(alpha, max_value)
                 if max_value == value:
                     max_move = move
                 current_state.pop()  # Undo previous move to return to the previous state
@@ -42,7 +42,7 @@ class ABPruningAI:
                 current_state.push(move)  # Move piece to explore new state
                 value = self.AlphaBetaPruning(current_state, depth + 1, not maximizingTurn, alpha, beta)
                 min_value = min(min_value, value)
-                beta = min(beta, value)
+                beta = min(beta, min_value)
                 current_state.pop()  # Undo previous move to return to the previous state
                 if beta <= alpha:
                     break
