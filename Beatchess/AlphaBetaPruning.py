@@ -1,9 +1,10 @@
 from math import inf
 import numpy as np
+import random
 
 class ABPruningAI:
 
-    def __init__(self, depth_limit=3):
+    def __init__(self, depth_limit=2):
         self.depth_limit = depth_limit
         self.pieceValues = {}
         self.initPieceValues()
@@ -18,7 +19,9 @@ class ABPruningAI:
         elif maximizingTurn:
             max_value = -inf
             max_move = None  # Needed to return the most promising move
-            for move in current_state.legal_moves:  # Could be improved with move ordering
+            moves = [move for move in current_state.legal_moves]
+            random.shuffle(moves)
+            for move in moves:  # Could be improved with move ordering
                 self.explorados += 1
                 current_state.push(move)  # Move piece to explore new state
                 value = self.AlphaBetaPruning(current_state, depth + 1, not maximizingTurn, alpha, beta)
@@ -37,7 +40,9 @@ class ABPruningAI:
                 return max_value
         else:
             min_value = inf
-            for move in current_state.legal_moves:
+            moves = [move for move in current_state.legal_moves]
+            random.shuffle(moves)
+            for move in moves:
                 self.explorados += 1
                 current_state.push(move)  # Move piece to explore new state
                 value = self.AlphaBetaPruning(current_state, depth + 1, not maximizingTurn, alpha, beta)
@@ -50,13 +55,13 @@ class ABPruningAI:
 
     def leafStateValue(self, current_state):
         value = 0
-        x, y = 7, 0
+        x, y = 0, 0
         for char in current_state.fen().split()[0]:
             if char in self.pieceValues.keys():
                 value += self.pieceValues[char][x][y]
                 y += 1
             elif char == '/':
-                x -= 1
+                x += 1
                 y = 0
             else:
                 y += int(char)

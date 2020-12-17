@@ -317,7 +317,7 @@ class CalviChess():
 
     #Monte Carlo
     def on_pieza_soltada_3(self):
-        MCT = MCTS.MCTSRoot(chess.Board(juego.fen()),500)
+        MCT = MCTS.MCTSRoot(chess.Board(juego.fen()), 100)
         temp2 = (str)(MCT.getMostVisitedChild().move)
         print(temp2)
         self.casilla_origen = temp2[0] + temp2[1]
