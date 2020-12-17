@@ -9,7 +9,7 @@ def calcUCB1(node, parent):
     return node.value() + 2 * math.sqrt(math.log(parent.visit_count) / node.visit_count)
 
 
-def MCTSRoot(root_state, max_visits=100):
+def MCTSRoot(root_state, max_visits=500):
     root = MCTSNode(root_state)
     root.expandChildren()
     for _ in range(max_visits):
@@ -68,9 +68,9 @@ def RolloutNode(gamestate):
 
 def resultBlackPerspective(result):
     if result == "1-0":
-        return -1
-    elif result == "0-1":
         return 1
+    elif result == "0-1":
+        return -1
     return 0
 
 

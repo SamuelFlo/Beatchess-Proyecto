@@ -34,9 +34,9 @@ class MCTSNode:
         max_visited = -math.inf
         nodes = []
         for child in self.children:
-            if child.visit_count > max_visited:
+            if child.value() > max_visited:
                 nodes = [child]
-                max_visited = child.visit_count
+                max_visited = child.value()
             elif child.visit_count == max_visited:
                 nodes.append(child)
         return random.choice(nodes)

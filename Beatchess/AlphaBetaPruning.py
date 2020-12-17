@@ -1,9 +1,10 @@
 from math import inf
 import numpy as np
+import random
 
 class ABPruningAI:
 
-    def __init__(self, depth_limit=3):
+    def __init__(self, depth_limit=5):
         self.depth_limit = depth_limit
         self.pieceValues = {}
         self.initPieceValues()
@@ -14,11 +15,15 @@ class ABPruningAI:
 
     def AlphaBetaPruning(self, current_state, depth=0, maximizingTurn=True, alpha=-inf, beta=inf):
         if depth == self.depth_limit or self.GameOver(current_state):
+            if self.GameOver(current_state):
+                return self.resultBlackPerspective(current_state.result()) * 1000
             return self.leafStateValue(current_state)
         elif maximizingTurn:
             max_value = -inf
             max_move = None  # Needed to return the most promising move
-            for move in current_state.legal_moves:  # Could be improved with move ordering
+            moves = [move for move in current_state.legal_moves]
+            random.shuffle(moves)
+            for move in moves:  # Could be improved with move ordering
                 self.explorados += 1
                 current_state.push(move)  # Move piece to explore new state
                 value = self.AlphaBetaPruning(current_state, depth + 1, not maximizingTurn, alpha, beta)
@@ -37,7 +42,9 @@ class ABPruningAI:
                 return max_value
         else:
             min_value = inf
-            for move in current_state.legal_moves:
+            moves = [move for move in current_state.legal_moves]
+            random.shuffle(moves)
+            for move in moves:
                 self.explorados += 1
                 current_state.push(move)  # Move piece to explore new state
                 value = self.AlphaBetaPruning(current_state, depth + 1, not maximizingTurn, alpha, beta)
@@ -50,20 +57,27 @@ class ABPruningAI:
 
     def leafStateValue(self, current_state):
         value = 0
-        x, y = 7, 0
+        x, y = 0, 0
         for char in current_state.fen().split()[0]:
             if char in self.pieceValues.keys():
                 value += self.pieceValues[char][x][y]
                 y += 1
             elif char == '/':
-                x -= 1
+                x += 1
                 y = 0
             else:
                 y += int(char)
         return value
 
     def GameOver(self, current_state):
-        return False
+        return current_state.is_game_over()
+
+    def resultBlackPerspective(self, result):
+        if result == "1-0":
+            return -1
+        elif result == "0-1":
+            return 1
+        return 0
 
     def initPieceValues(self):
         # Initialize pawn values
