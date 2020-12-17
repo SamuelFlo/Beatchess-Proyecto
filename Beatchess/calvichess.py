@@ -147,7 +147,7 @@ class CalviChess():
         self.listfens.append(juego.fen())
         print(chess.Board(juego.fen()))
         print(juego.fen())
-        if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
+        if juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
         """
         elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
@@ -230,7 +230,7 @@ class CalviChess():
 
     #Alphabeta
     def on_pieza_soltada_1(self):
-
+        self.flag=1
         ai_move = self.AI.BestMove(chess.Board(juego.fen()))
 
         if self.flag ==0:
