@@ -8,6 +8,7 @@ from tkinter import messagebox as MessageBox
 from AlphaBetaPruning import ABPruningAI
 from stockfish import Stockfish
 import random
+import MCTS
 
 
 class CalviChess():
@@ -32,7 +33,7 @@ class CalviChess():
     verificar_checkMate = False
     verificar_check = False
     verificar_draw = False
-    AI = ABPruningAI()
+    AI = ABPruningAI(4)
     stockfish = Stockfish("stockfish_20090216_x64.exe")
     stockfish.set_depth(15)
     contador = 0
@@ -144,12 +145,13 @@ class CalviChess():
 
     def empezar(self):
         self.listfens.append(juego.fen())
+        print(chess.Board(juego.fen()))
         if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
         elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
-            self.on_pieza_soltada_2()
+            self.on_pieza_soltada_3()
 
-
+    #Stockfish
     def on_pieza_soltada_2(self):
         self.stockfish.set_fen_position(juego.fen())
 
@@ -224,10 +226,11 @@ class CalviChess():
             self.dibuja_tablero()
             self.dibuja_piezas()
 
-
+    #Alphabeta
     def on_pieza_soltada_1(self):
 
         ai_move = self.AI.BestMove(chess.Board(juego.fen()))
+
         if self.flag ==0:
             listentrance=['e7e5','d7d5','b7b6','c7c5','f7f5','g7g6','a7a6','a7a5','c7c6','d7d6','e7e6','f7f6','g7g5','h7h6','h7h5']
             pos = random.randint(0,len(listentrance)-1)
@@ -312,10 +315,80 @@ class CalviChess():
             self.dibuja_tablero()
             self.dibuja_piezas()
 
-
+    #Monte Carlo
     def on_pieza_soltada_3(self):
-        #MCT = MCTS.MCTSRoot(board)
-        pass
+        MCT = MCTS.MCTSRoot(chess.Board(juego.fen()),500)
+        temp2 = (str)(MCT.getMostVisitedChild().move)
+        print(temp2)
+        self.casilla_origen = temp2[0] + temp2[1]
+        self.casilla_destino = temp2[2] + temp2[3]
+        movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
+
+        if movimiento:
+            promocion = movimiento['promotion']
+            pieza = movimiento['piece']
+            san = movimiento['san']
+            color = movimiento['color']
+            flags = movimiento['flags']
+            """
+            El campo flags puede contener uno o mas de los valores siguientes:
+            - 'n' - a non-capture
+            - 'b' - a pawn push of two squares
+            - 'e' - an en passant capture
+            - 'c' - a standard capture
+            - 'p' - a promotion
+            - 'k' - kingside castling
+            - 'q' - queenside castling
+            """
+            # O-O
+            if '#' in movimiento['san']:
+                self.verificar_checkMate = True
+            elif '+' in movimiento['san']:
+                self.verificar_check = True
+            elif '~' in movimiento['san']:
+                self.verificar_draw = True
+            else:
+                self.verificar_check = False
+
+            # ahora vamos a arreglar el tablero interno
+            # este primer del es para borrar la pieza de la casilla origen. Ocurre siempre
+            del self.tablero[self.casilla_origen]  # borramos la pieza en el tablero interno
+            # ahora vamos con los enroques
+            if 'k' in movimiento['flags']:
+                if movimiento['color'] == 'w':
+                    del self.tablero['h1']
+                elif movimiento['color'] == 'b':
+                    del self.tablero['h8']
+            if 'q' in movimiento['flags']:
+                if movimiento['color'] == 'w':
+                    del self.tablero['a1']
+                elif movimiento['color'] == 'b':
+                    del self.tablero['a8']
+            # ahora vamos con la captura al paso
+            if 'e' in flags:
+                if movimiento['color'] == 'w':
+                    numero = int(movimiento['to'][1]) - 1
+                    numstr = str(numero)
+                    casilla_a_borrar = movimiento['to'][0] + numstr
+                    del self.tablero[casilla_a_borrar]
+                elif movimiento['color'] == 'b':
+                    numero = int(movimiento['to'][1]) + 1
+                    numstr = str(numero)
+                    casilla_a_borrar = movimiento['to'][0] + numstr
+                    del self.tablero[casilla_a_borrar]
+            self.tablero.procesa_notacion(juego.fen())
+            self.dibuja_tablero()
+            self.dibuja_piezas()
+
+            # pyglet.font.add_file('./fuentes/ChessSansUscf.ttf') --> se tiene que poner en directorio de SO
+            # fuente_ajedrez = pyglet.font.load('ChessSansUscf')
+            depositLabel = Message(self.ventana_derecha, text=juego.pgn(), width=300, padx=2,
+                                   justify=LEFT)  # , font_name='ChessSansUscf')
+            depositLabel.grid(column=0, row=0)
+
+        else:
+            self.dibuja_tablero()
+            self.dibuja_piezas()
 
 
 
