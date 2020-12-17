@@ -33,7 +33,7 @@ class CalviChess():
     verificar_checkMate = False
     verificar_check = False
     verificar_draw = False
-    AI = ABPruningAI(3)
+    AI = ABPruningAI(2)
     stockfish = Stockfish("stockfish_20090216_x64.exe")
     stockfish.set_depth(15)
     contador = 0
