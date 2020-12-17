@@ -1,4 +1,6 @@
 import chess
+import math
+import random
 
 class MCTSNode:
 
@@ -27,3 +29,14 @@ class MCTSNode:
 
     def isGameTerminal(self):
         return self.gamestate.is_game_over() or self.gamestate.is_stalemate()
+
+    def getMostVisitedChild(self):
+        max_visited = -math.inf
+        nodes = []
+        for child in self.children:
+            if child.visit_count > max_visited:
+                nodes = [child]
+                max_visited = child.visit_count
+            elif child.visit_count == max_visited:
+                nodes.append(child)
+        return random.choice(nodes)
