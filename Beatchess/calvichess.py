@@ -1,24 +1,18 @@
-#!/usr/bin/env python
-# -*- coding: utf-8 -*-
 import chess
 from tkinter import *
 import tablero
 import ajedrez_parser
 from tkinter import messagebox as MessageBox
 from AlphaBetaPruning import ABPruningAI
-from stockfish import Stockfish
 import random
 import MCTS
 
-
-class CalviChess():
-    listfens=[]
+#Clase Principal
+class BeatChess():
     cont = 0
     flag=0
     filas = 8
     columnas = 8
-    #color1 = "#DDB88C"    #es la casilla blanca
-    #"color2 = "#A66D4F"    #es la casilla oscura
     color1 = "#45e7a5"
     color2 = "#e75445"
     sombra_color1 = "#696969"
@@ -33,55 +27,29 @@ class CalviChess():
     verificar_checkMate = False
     verificar_check = False
     verificar_draw = False
+
+    #AlphaBetaPruning
     AI = ABPruningAI(3)
-    stockfish = Stockfish("stockfish_20090216_x64.exe")
-    stockfish.set_skill_level(1)
-    stockfish.set_depth(1)
-    contador = 0
     
 
-    
+    #Constructor de la clase
     def __init__(self, raiz, posicion):
         self.raiz = raiz
         self.tablero = posicion
-
         canvas_width = self.columnas * self.dim_casilla
         canvas_height = self.filas * self.dim_casilla
-        #para hacer la pantalla de tamaño cambiante e incluir el tablero y una "caja de texto"
         panes = PanedWindow(raiz, bg='grey', width=2.5*canvas_width)
         panes.pack()
-
         self.canvas = Canvas(panes, width=canvas_width, height=canvas_height)
         self.canvas.pack(padx=8, pady=8)
-
         self.ventana_derecha = Canvas(panes, width=canvas_width, height=canvas_height)
         self.ventana_derecha.pack(padx=12, pady=12)
-
-
         panes.add(self.canvas)
         panes.add(self.ventana_derecha)
-        # Esto lo usaremos para mantener el rastro de una pieza(item) 
-        # cuando se arrastre (drag)
-        #self.canvas.config(scrollregion=self.canvas(ALL))
         self._drag_data = {"x": 0, "y": 0, "item": None}
 
-
-
-        #print(21, juego.moves({ 'verbose': True }))  # nos muestra todas las jugadas posibles
-
-    """
-    Ahora, dibujamos las cuadriculas del tablero usando el método canvas.create_rectangle, 
-    llenándolo alternando entre los dos colores que definimos anteriormente.
-    
-    Para dibujar cuadros en la tabla usamos el método canvas.create_rectangle (), 
-    que dibuja un rectángulo con las coordenadas x, y de las dos esquinas diagonalmente opuestas del rectángulo 
-    (coordenadas de los bordes superior izquierdo e inferior derecho).
-    
-    Necesitaremos apuntar al tablero. 
-    Por lo tanto, agregamos una etiqueta denominada - area - a cada uno de los cuadrados creados en el tablero. 
-    """
+     #Funcion para dibujar el tablero en la interfaz grafica
     def dibuja_tablero(self):
-
         self.canvas.delete("area")
         color = self.color1
         for r in range(self.filas):
@@ -93,8 +61,6 @@ class CalviChess():
                 y1 = ((7-r) * self.dim_casilla)
                 x2 = x1 + self.dim_casilla
                 y2 = y1 + self.dim_casilla
-                # x1 y y1 es el vertice superior izquierdo
-                # x2 e y2 es el vertice inferior derecho
                 id_casilla = str(x1) + '-' + str(y1) + '-' + str(x2) + '-' + str(y2)
                 self.canvas.create_rectangle(x1, y1, x2, y2,  fill=color, tags=(id_casilla,"area"))
                 color = self.color1 if color == self.color2 else self.color2
@@ -110,14 +76,9 @@ class CalviChess():
 
 
                 
-    # dibujamos las piezas en la posicion FEN de chessboard          
-    def dibuja_piezas(self): # new method defined here
-        #if juego.turno()=='b':
-         #   self.on_pieza_soltada_1()
-
-
+    #Funcion para dibujar las piezas en la interfaz grafica
+    def dibuja_piezas(self):
         self.canvas.delete("ocupada")
-        #for xycoord, piece in self.chessboard.iteritems(): # iterates through the chess board instance created above in the __init__ method
         for xycoord, valor in self.tablero.items():
             #sacamos las coordenadas de cada casilla : c8 será --> 7,2 ; a8 --> 7,0 y asi sucesivamente
             x,y = self.tablero.num_notacion(xycoord)
@@ -134,101 +95,20 @@ class CalviChess():
                 y0 = ((7-x) * self.dim_casilla) + int(self.dim_casilla/2)
                 self.canvas.coords(nom_pieza, x0, y0)
                 self.canvas.tag_bind(self.obj_imagen, "<Enter>", self.entra_mouse_over)
-                #self.canvas.tag_bind(self.obj_imagen, "<Leave>", self.sale_mouse_over)
-                #empezamos ahora el drag & drop
-                #añadimos la ligazon del clic, arrastrar y soltar sobre
-                #las imagenes con el tag "ocupada"
                 self.canvas.tag_bind("ocupada", "<ButtonPress-1>", self.on_pieza_presionada)
                 self.canvas.tag_bind("ocupada", "<ButtonRelease-1>", self.on_pieza_soltada)
                 self.canvas.tag_bind("ocupada", "<B1-Motion>", self.on_pieza_moviendo)
-        #time.sleep(5)
         self.empezar()
 
+    #Funcion para empezar turnos
     def empezar(self):
-        self.listfens.append(juego.fen())
-        print(chess.Board(juego.fen()))
-        print(juego.fen())
-        print(juego.pgn())
         if juego.turno() == 'b' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_1()
         """
         elif juego.turno() == 'w' and self.verificar_checkMate != True and self.verificar_draw != True:
             self.on_pieza_soltada_2()
         """
-    #Stockfish
-    def on_pieza_soltada_2(self):
-        self.stockfish.set_fen_position(juego.fen())
 
-        temp2 = str(self.stockfish.get_best_move())
-        self.casilla_origen = temp2[0] + temp2[1]
-        self.casilla_destino = temp2[2]+temp2[3]
-        movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
-
-        if movimiento:
-            promocion = movimiento['promotion']
-            pieza = movimiento['piece']
-            san = movimiento['san']
-            color = movimiento['color']
-            flags = movimiento['flags']
-            """
-            El campo flags puede contener uno o mas de los valores siguientes:
-            - 'n' - a non-capture
-            - 'b' - a pawn push of two squares
-            - 'e' - an en passant capture
-            - 'c' - a standard capture
-            - 'p' - a promotion
-            - 'k' - kingside castling
-            - 'q' - queenside castling
-            """
-            # O-O
-            if '#' in movimiento['san']:
-                self.verificar_checkMate = True
-            elif '+' in movimiento['san']:
-                self.verificar_check = True
-            elif '~' in movimiento['san']:
-                self.verificar_draw = True
-            else:
-                self.verificar_check = False
-
-            # ahora vamos a arreglar el tablero interno
-            # este primer del es para borrar la pieza de la casilla origen. Ocurre siempre
-            del self.tablero[self.casilla_origen]  # borramos la pieza en el tablero interno
-            # ahora vamos con los enroques
-            if 'k' in movimiento['flags']:
-                if movimiento['color'] == 'w':
-                    del self.tablero['h1']
-                elif movimiento['color'] == 'b':
-                    del self.tablero['h8']
-            if 'q' in movimiento['flags']:
-                if movimiento['color'] == 'w':
-                    del self.tablero['a1']
-                elif movimiento['color'] == 'b':
-                    del self.tablero['a8']
-            # ahora vamos con la captura al paso
-            if 'e' in flags:
-                if movimiento['color'] == 'w':
-                    numero = int(movimiento['to'][1]) - 1
-                    numstr = str(numero)
-                    casilla_a_borrar = movimiento['to'][0] + numstr
-                    del self.tablero[casilla_a_borrar]
-                elif movimiento['color'] == 'b':
-                    numero = int(movimiento['to'][1]) + 1
-                    numstr = str(numero)
-                    casilla_a_borrar = movimiento['to'][0] + numstr
-                    del self.tablero[casilla_a_borrar]
-            self.tablero.procesa_notacion(juego.fen())
-            self.dibuja_tablero()
-            self.dibuja_piezas()
-
-            # pyglet.font.add_file('./fuentes/ChessSansUscf.ttf') --> se tiene que poner en directorio de SO
-            # fuente_ajedrez = pyglet.font.load('ChessSansUscf')
-            depositLabel = Message(self.ventana_derecha, text=juego.pgn(), width=300, padx=2,
-                                   justify=LEFT)  # , font_name='ChessSansUscf')
-            depositLabel.grid(column=0, row=0)
-
-        else:
-            self.dibuja_tablero()
-            self.dibuja_piezas()
 
     #Alphabeta
     def on_pieza_soltada_1(self):
@@ -238,7 +118,6 @@ class CalviChess():
         if self.flag ==0:
             listentrance=['e7e5','d7d5','b7b6','c7c5','f7f5','g7g6','a7a6','a7a5','c7c6','d7d6','e7e6','f7f6','g7g5','h7h6','h7h5']
             pos = random.randint(0,len(listentrance)-1)
-            print(listentrance[pos])
             temp=listentrance[pos]
             self.casilla_origen = temp[0] + temp[1]
             self.casilla_destino = temp[2] + temp[3]
@@ -248,8 +127,7 @@ class CalviChess():
             self.casilla_destino = temp[2] + temp[3]
 
         movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
-        print(movimiento)
-        print(movimiento, 'NEGROOOOOOOOOOOOOOOOOOOOO')
+
 
         self.flag = 1
 
@@ -323,7 +201,6 @@ class CalviChess():
     def on_pieza_soltada_3(self):
         MCT = MCTS.MCTSRoot(chess.Board(juego.fen()), 100)
         temp2 = (str)(MCT.getMostVisitedChild().move)
-        print(temp2)
         self.casilla_origen = temp2[0] + temp2[1]
         self.casilla_destino = temp2[2] + temp2[3]
         movimiento = juego.move({'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q'})
@@ -344,6 +221,7 @@ class CalviChess():
             - 'k' - kingside castling
             - 'q' - queenside castling
             """
+
             # O-O
             if '#' in movimiento['san']:
                 self.verificar_checkMate = True
@@ -404,8 +282,6 @@ class CalviChess():
         seleccionada_columna = event.x // col_tamano
         seleccionada_fila = 7 - (event.y // fila_tamano)
         pos = self.tablero.alfa_notacion((seleccionada_fila, seleccionada_columna))
-        #averiguamos la pieza y color que esta en tablero[pos] --> pos es la casilla b8, c7, etc.
-        #si el turno (w o b) coincide con el color de la pieza, iniciamos el movimiento
         if pos in self.tablero:
             if juego.turno() != self.tablero[pos]['color']:
                 self.casilla_origen = None
@@ -427,7 +303,6 @@ class CalviChess():
     def on_pieza_soltada(self, event):
         '''Final del arrastre de la pieza'''
         # reseteamos la informacion del arrastre
-
         self._drag_data["item"] = None
         self._drag_data["x"] = 0
         self._drag_data["y"] = 0
@@ -437,7 +312,6 @@ class CalviChess():
         seleccionada_fila = 7 - (event.y // fila_tamano)
         self.casilla_destino = self.tablero.alfa_notacion((seleccionada_fila, seleccionada_columna))
         movimiento = juego.move({ 'from': self.casilla_origen, 'to': self.casilla_destino, 'promotion': 'q' })
-        print(movimiento,'BLANCOOOOOOOOOOOO')
 
         if movimiento:
             promocion = movimiento['promotion']
@@ -500,10 +374,6 @@ class CalviChess():
                 MessageBox.showinfo("Check", "Check!")
             elif self.verificar_draw==True:
                 MessageBox.showinfo("Draw", "Empate!")
-
-
-            #pyglet.font.add_file('./fuentes/ChessSansUscf.ttf') --> se tiene que poner en directorio de SO
-            #fuente_ajedrez = pyglet.font.load('ChessSansUscf')
             depositLabel = Message(self.ventana_derecha, text=juego.pgn(), width=300, padx=2,
                                    justify=LEFT)  # , font_name='ChessSansUscf')
             depositLabel.grid(column=0, row=0)
@@ -514,8 +384,6 @@ class CalviChess():
             self.dibuja_piezas()
             if self.verificar_check == True:
                 MessageBox.showinfo("Check", "Check!")
-        
-        
 
     def on_pieza_moviendo(self, event):
         '''Maneja el arrastre de la pieza'''
@@ -533,11 +401,9 @@ class CalviChess():
             # guardo la posicion nueva
             self._drag_data["x"] = event.x
             self._drag_data["y"] = event.y
-    
-    
+
     # -----------------terminamos el drag & drop de las piezas -------
-    
-    
+
     # ----------- eventos del raton on/out over------------------------
     def pieza_esta_raton(self, coord_x, coord_y):
         col_tamano = fila_tamano = self.dim_casilla
@@ -553,7 +419,7 @@ class CalviChess():
         except:
             pass
             
-            
+    #Funcion para casillas grises del tablero
     def entra_mouse_over(self, event):
         def casillas_grises(casilla):
             x1 = self.color_casillas_tablero[casilla]['x1']
@@ -565,7 +431,6 @@ class CalviChess():
             id_casilla = str(x1) + '-' + str(y1) + '-' + str(x2) + '-' + str(y2)
             self.canvas.itemconfig(id_casilla,  fill=color)
             #hemos quitado la pieza y ahora la ponemos
-            
             x,y = self.tablero.num_notacion(self.posibles_jugadas[0]['from'])
             nom_fichero = "./piezas/%s%s.png" % (self.posibles_jugadas[0]['color'], self.posibles_jugadas[0]['piece'])
             if self.posibles_jugadas[0]['color'] == 'w' :
@@ -595,16 +460,14 @@ class CalviChess():
         
     #---------------------------- fin de raton on/out over ------------------
 
-
+#Funcion para iniciar interfaz grafica
 def inicia_programa(posic_tablero):
     root = Tk()
-    root.title("BitChess")
-    gui = CalviChess(root, posic_tablero)
+    root.title("BeatChess")
+    gui = BeatChess(root, posic_tablero)
     gui.dibuja_tablero()
     gui.dibuja_piezas()
-
     root.mainloop()
-    print(gui.listfens)
 
 
 if __name__ == "__main__":
